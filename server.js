@@ -29,6 +29,15 @@ http.createServer(function(request,response){
 		response.writeHead(200,{'Content-Type':'application/x-javascript'});
 		dataReturn = getJs('index');
 	}
+	else if( url == "/audio/viva.mp3" )
+	{
+		response.writeHead(200,{
+			'Content-Type':'audio/mp3',
+			'Connection':'keep-alive',
+			'Cache-Control':'no-store'
+		});
+		dataReturn = getAudio('viva');
+	}
 	else
 	{
 		dataReturn = "everyting will change";
@@ -84,6 +93,12 @@ function getJs(page){
 	fs.readFile(uri,function(err,data){
 		return data;
 	});*/
+}
+
+function getAudio( song ){
+	var uri = "./audio/"+song+".mp3";
+	var audio = fs.readFileSync(uri);
+	return audio;
 }
 
 
