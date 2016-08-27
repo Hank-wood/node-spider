@@ -7,7 +7,6 @@ var con = mysql.createConnection({
 	user:'root',
 	password:'xubiao',
 	database:'node_movie'
-
 });
 
 con.connect(function(err){

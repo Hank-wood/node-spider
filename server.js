@@ -17,13 +17,13 @@ http.createServer(function(request,response){
 	switch(type)
 	{
 		case '' || 'html':
-			response.writeHead(200,{'Content-Type':'text/html'});
+			response.writeHead(200,{'Content-Type':'text/html','Cache-Control':'no-cache'});
 			break;
 		case 'css':
-			response.writeHead(200,{'Content-Type':'text/css'});
+			response.writeHead(200,{'Content-Type':'text/css','Cache-Control':'no-cache'});
 			break;
 		case 'js':
-			response.writeHead(200,{'Content-Type':'application/x-javascript'});
+			response.writeHead(200,{'Content-Type':'application/x-javascript','Cache-Control':'no-cache'});
 			break;
 		case 'audio':
 			response.writeHead(200,{
@@ -32,6 +32,13 @@ http.createServer(function(request,response){
 				// 'Cache-Control':'no-store'
 			});
 			break;
+	}
+
+	//Ajax Request
+	if( url.indexOf('server.js') > -1)
+	{
+		handleAjax(request,response);
+		return;
 	}
 
 	if( url == '/' )
@@ -67,3 +74,39 @@ function for404( response )
 	response.end();
 }
 
+function handleAjax(request,response){
+	var movieDatas = [];
+	var con = mysql.createConnection({
+		host:'localhost',
+		user:'root',
+		password:'xubiao',
+		database:'node_movie'
+	});
+
+	con.connect(function(err){
+		if(err){
+			console.error('error connecting:'+err.stack);
+			return "database fail";
+		}
+	});
+	con.query('select * from movie_imdb',function(err,results){
+		var movieData = {};
+		results.forEach(function(item,index){
+			movieData = {
+				'id':item.id,
+				'picUrl':item.picUrl,
+				'name':item.name,
+				'content':item.content,
+				'director':item.director,
+				'stars':item.stars
+			};
+			movieDatas.push( movieData );
+		});
+
+		response.writeHead(200,{'Content-Type':'text/plain'});
+		// response.write( movieDatas );
+		response.write( JSON.stringify(movieDatas) );
+		response.end();
+	});
+	con.end();
+}
