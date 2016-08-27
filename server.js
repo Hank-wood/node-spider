@@ -6,99 +6,64 @@ var mysql = require('mysql');
 var util = require('util');
 
 http.createServer(function(request,response){
-//	response.writeHead(200,{'Content-Type':'text/plain'});
-//	response.write( util.inspect(request) );
-//	response.end();
 	var url = request.url.trim();
 	var dataReturn = "";
 	
-	if(url !='/favicon.ico')
-		console.log("current url : "+url);	
-	if(url == '/')
-	{
-		response.writeHead(200,{'Content-Type':'text/html'});
-		dataReturn = getHtml('index');
-	}
-	else if( url == "/css/index.css" )
-	{
-		response.writeHead(200,{'Content-Type':'text/css'});
-		dataReturn = getCss('index');
-	}
-	else if( url == "/js/index.js" )
-	{
-		response.writeHead(200,{'Content-Type':'application/x-javascript'});
-		dataReturn = getJs('index');
-	}
-	else if( url == "/audio/viva.mp3" )
-	{
-		response.writeHead(200,{
-			'Content-Type':'audio/mp3',
-			'Connection':'keep-alive',
-			'Cache-Control':'no-store'
-		});
-		dataReturn = getAudio('viva');
-	}
-	else
-	{
-		dataReturn = "everyting will change";
-	}
-	// response.writeHead(200,{'Content-Type':'text/plain'});
-	// response.writeHead(200,{'Content-Type':'text/html'});
-	response.write( dataReturn );
-	response.end();
+	if(url =='/favicon.ico')
+		return;
+	console.log("current url : "+url);	
 
+	var type = url.split( '/' )[1];
+	switch(type)
+	{
+		case '' || 'html':
+			response.writeHead(200,{'Content-Type':'text/html'});
+			break;
+		case 'css':
+			response.writeHead(200,{'Content-Type':'text/css'});
+			break;
+		case 'js':
+			response.writeHead(200,{'Content-Type':'application/x-javascript'});
+			break;
+		case 'audio':
+			response.writeHead(200,{
+				'Content-Type':'audio/mp3',
+				'Connection':'keep-alive',
+				// 'Cache-Control':'no-store'
+			});
+			break;
+	}
+
+	if( url == '/' )
+		url = '/html/index.html'; // default index
+	var rootRoad = '/home/xubiao/node-spider/node-spider';
+	var URI = rootRoad + url;
+	fs.readFile( URI , function(err,data){
+		if( err )
+		{
+			for404( response );
+			return;
+		}
+		response.write( data );
+		response.end();
+	});
 })
 .listen(8080,function(err){
 	console.log("The server is on ...");
 });
 
-/*function showHtml(page)
-{//async wrong
+function for404( response )
+{
+	/*var errorData = fs.readFileSync("./html/404.html");
+	response.writeHead(200,{'Content-Type':'text/html'});
+	response.write( errorData );
+	response.end();
+	console.log('current url : 404 ');*/
 
-	var html = "";
-	var readStream = fs.createReadStream("index.html");
-	readStream.setEncoding('UTF-8');
-	readStream.on('data',function(data){
-		html += data;
+	// redirect url
+	response.writeHead(302, {
+	  'Location': '/html/404.html',
 	});
-	readStream.on('end',function(){
-		// console.log(html);
-	});
-	readStream.on('error',function(err){
-		util.inspect( err );
-	});
-}*/
-function getHtml(page){
-	//sync
-	var uri = "./html/"+page+".html";
-	var html = fs.readFileSync(uri);
-	return html;
+	response.end();
 }
-
-function getCss(page){
-	//sync
-	var uri = "./css/"+page+".css";
-	var css = fs.readFileSync(uri);
-	// console.log( css.toString() );
-	return css;
-}
-
-function getJs(page){
-	//sync
-	var uri = "./js/"+page+".js";
-	var js = fs.readFileSync(uri);
-	// console.log( css.toString() );
-	return js;
-	/*var uri = "./js/"+page+".js";
-	fs.readFile(uri,function(err,data){
-		return data;
-	});*/
-}
-
-function getAudio( song ){
-	var uri = "./audio/"+song+".mp3";
-	var audio = fs.readFileSync(uri);
-	return audio;
-}
-
 
